@@ -1,0 +1,25 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+orders_df=pd.read_csv("C:/Users/leela/OneDrive/Desktop/FODS-LAB/customer.csv")
+print("basic analysis of customer data:\n")
+print(orders_df.head())
+print(orders_df.info())
+print(orders_df.describe())
+print(orders_df.duplicated().sum())
+most_frequent_purchases=(
+    orders_df.groupby('customerid')['quantity'].sum().sort_values(ascending=False)
+    )
+print("\ntop 10 customers with most purchased items:")
+print(most_frequent_purchases.head(4))
+avg_order_value=orders_df['totalprice'].mean()
+print("average order value",avg_order_value)
+customer_cltv=orders_df.groupby('customerid')['totalprice'].sum()
+print("top 10 customers by customer life time value:")
+print(customer_cltv.sort_values(ascending=False).head(4))
+most_popular_products=orders_df.groupby('productid')['quantity'].sum().sort_values(ascending=False)
+print("\n top 10 most popular productsby quantity:")
+print(most_popular_products.head(4))
+product_revenue=orders_df.groupby('productid')['totalprice'].sum()
+print("\n top 4 revenues generated:")
+print(product_revenue.sort_values(ascending=False).head(4))
+
