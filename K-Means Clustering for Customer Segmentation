@@ -1,0 +1,58 @@
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+
+# Step 1: Generate synthetic customer data for training
+np.random.seed(42)
+
+num_customers = 200
+
+data = {
+    'TotalAmountSpent': np.random.gamma(shape=2.0, scale=500.0, size=num_customers),
+    'FrequencyOfVisits': np.random.poisson(lam=10.0, size=num_customers),
+    'AvgBasketValue': np.random.normal(loc=100, scale=20, size=num_customers),  # Avg amount spent per transaction
+    'TimeSpentOnSite': np.random.normal(loc=15, scale=5, size=num_customers)  # Time spent on website in minutes
+}
+
+df = pd.DataFrame(data)
+
+# Step 2: Preprocess the data
+features = ['TotalAmountSpent', 'FrequencyOfVisits', 'AvgBasketValue', 'TimeSpentOnSite']
+X = df[features]
+
+# Scale the features
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# Step 3: Apply K-Means clustering
+kmeans = KMeans(n_clusters=3, random_state=42)
+kmeans.fit(X_scaled)
+
+# Step 4: Function to assign a new customer to a segment
+def assign_customer_to_segment(new_customer_data):
+    # Convert the input data to a DataFrame
+    new_customer_df = pd.DataFrame([new_customer_data], columns=features)
+    
+    # Scale the new customer's data
+    new_customer_scaled = scaler.transform(new_customer_df)
+    
+    # Predict the cluster for the new customer
+    cluster = kmeans.predict(new_customer_scaled)
+    
+    return cluster[0]
+
+# Step 5: User input for new customer data
+print("Please input the new customer's shopping-related features:")
+
+new_customer_data = {
+    'TotalAmountSpent': float(input("Total Amount Spent: ")),
+    'FrequencyOfVisits': int(input("Frequency of Visits: ")),
+    'AvgBasketValue': float(input("Average Basket Value: ")),
+    'TimeSpentOnSite': float(input("Time Spent on Site (in minutes): "))
+}
+
+# Step 6: Assign the new customer to a segment
+assigned_cluster = assign_customer_to_segment(new_customer_data)
+
+print(f"\nThe new customer has been assigned to segment: {assigned_cluster}")
