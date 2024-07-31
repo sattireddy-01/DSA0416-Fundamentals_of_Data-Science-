@@ -1,0 +1,67 @@
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Seed for reproducibility
+np.random.seed(42)
+
+# Generate synthetic data
+num_customers = 200
+
+data = {
+    'CustomerID': range(1, num_customers + 1),
+    'TotalAmountSpent': np.random.gamma(shape=2.0, scale=500.0, size=num_customers),
+    'FrequencyOfVisits': np.random.poisson(lam=10.0, size=num_customers)
+}
+
+df = pd.DataFrame(data)
+
+# Display the first few rows of the DataFrame
+print("Sample Data:")
+print(df.head())
+
+# Preprocess the data
+data_for_clustering = df[['TotalAmountSpent', 'FrequencyOfVisits']].dropna()
+
+# Scale the features
+scaler = StandardScaler()
+scaled_data = scaler.fit_transform(data_for_clustering)
+
+# Determine the number of clusters using the Elbow Method
+inertia = []
+for k in range(1, 11):
+    kmeans = KMeans(n_clusters=k, random_state=42)
+    kmeans.fit(scaled_data)
+    inertia.append(kmeans.inertia_)
+
+# Plot the Elbow Method
+plt.figure(figsize=(8, 6))
+plt.plot(range(1, 11), inertia, marker='o')
+plt.title('Elbow Method for Optimal K')
+plt.xlabel('Number of Clusters (K)')
+plt.ylabel('Inertia')
+plt.show()
+
+# Fit K-Means with the chosen number of clusters (e.g., 3)
+optimal_k = 3  # Replace with the number of clusters from the Elbow Method
+kmeans = KMeans(n_clusters=optimal_k, random_state=42)
+clusters = kmeans.fit_predict(scaled_data)
+
+# Add the cluster information to the original data
+df['Cluster'] = clusters
+
+# Analyze the clusters
+print("\nCluster Analysis:")
+print(df.groupby('Cluster').mean())
+
+# Visualize the clusters
+plt.figure(figsize=(10, 8))
+sns.scatterplot(x=df['TotalAmountSpent'], y=df['FrequencyOfVisits'], hue=df['Cluster'], palette='viridis')
+plt.title('Customer Segmentation')
+plt.xlabel('Total Amount Spent')
+plt.ylabel('Frequency of Visits')
+plt.legend(title='Cluster')
+plt.show()
